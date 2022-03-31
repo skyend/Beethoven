@@ -8,6 +8,13 @@ public protocol PitchEngineDelegate: AnyObject {
   func pitchEngineWentBelowLevelThreshold(_ pitchEngine: PitchEngine)
 }
 
+public protocol PitchEngineAdvancedDelegate: AnyObject {
+    func pitchEngine(_ pitchEngine: PitchEngine, buffer: AVAudioPCMBuffer, time: AVAutioTime, didReceivePitch pitch: Pitch)
+  func pitchEngine(_ pitchEngine: PitchEngine, buffer: AVAudioPCMBuffer, time: AVAutioTime, didReceiveError error: Error)
+  func pitchEngineWentBelowLevelThreshold(_ pitchEngine: PitchEngine, buffer: AVAudioPCMBuffer, time: AVAutioTime)
+}
+
+
 public final class PitchEngine {
   public enum Error: Swift.Error {
     case recordPermissionDenied
@@ -15,7 +22,8 @@ public final class PitchEngine {
 
   public let bufferSize: AVAudioFrameCount
   public private(set) var active = false
-  public weak var delegate: PitchEngineDelegate?
+public weak var delegate: PitchEngineDelegate?
+  public weak var advancedDelegate: PitchEngineAdvancedDelegate?
 
   private let estimator: Estimator
   private let signalTracker: SignalTracker
@@ -63,6 +71,30 @@ public final class PitchEngine {
     self.delegate = delegate
   }
 
+  public init(config: Config = Config(),
+              signalTracker: SignalTracker? = nil,
+              advancedDelegate: PitchEngineAdvancedDelegate? = nil) {
+    bufferSize = config.bufferSize
+
+    let factory = EstimationFactory()
+    estimator = factory.create(config.estimationStrategy)
+
+    if let signalTracker = signalTracker {
+      self.signalTracker = signalTracker
+    } else {
+      if let audioUrl = config.audioUrl {
+        self.signalTracker = OutputSignalTracker(audioUrl: audioUrl, bufferSize: bufferSize)
+      } else {
+        self.signalTracker = InputSignalTracker(bufferSize: bufferSize)
+      }
+    }
+
+    self.queue = DispatchQueue(label: "BeethovenQueue", attributes: [])
+    self.signalTracker.delegate = self
+    self.advancedDelegate = advancedDelegate
+  }
+  
+  
   // MARK: - Processing
 
   public func start() {
@@ -125,7 +157,8 @@ public final class PitchEngine {
 extension PitchEngine: SignalTrackerDelegate {
   public func signalTracker(_ signalTracker: SignalTracker,
                             didReceiveBuffer buffer: AVAudioPCMBuffer,
-                            atTime time: AVAudioTime) {
+                            atTime time: AVAudioTime
+  ) {
       queue.async { [weak self] in
         guard let `self` = self else { return }
 
@@ -139,19 +172,28 @@ extension PitchEngine: SignalTrackerDelegate {
           DispatchQueue.main.async { [weak self] in
             guard let `self` = self else { return }
             self.delegate?.pitchEngine(self, didReceivePitch: pitch)
+              self.advancedDelegate.pitchEngine(self, buffer: didReceiveBuffer, time: atTime, didReceivePitch: pitch)
+              
           }
         } catch {
           DispatchQueue.main.async { [weak self] in
             guard let `self` = self else { return }
             self.delegate?.pitchEngine(self, didReceiveError: error)
+          self.advancedDelegate.pitchEngine(self, buffer: didReceiveBuffer, time: atTime, didReceivePitch: pitch)
           }
         }
     }
   }
 
-  public func signalTrackerWentBelowLevelThreshold(_ signalTracker: SignalTracker) {
+  public func signalTrackerWentBelowLevelThreshold(
+    _ signalTracker: SignalTracker,
+    didReceiveBuffer buffer: AVAudioPCMBuffer,
+    atTime time: AVAudioTime
+  ) {
     DispatchQueue.main.async {
-      self.delegate?.pitchEngineWentBelowLevelThreshold(self)
+        self.delegate?.pitchEngineWentBelowLevelThreshold(self)
+        
+        self.advancedDelegate?.pitchEngineWentBelowLevelThreshold(self, buffer: didReceiveBuffer, time:atTime)
     }
   }
 }

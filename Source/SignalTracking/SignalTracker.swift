@@ -1,10 +1,16 @@
 import AVFoundation
 
 public protocol SignalTrackerDelegate: AnyObject {
-  func signalTracker(_ signalTracker: SignalTracker,
-                     didReceiveBuffer buffer: AVAudioPCMBuffer,
-                     atTime time: AVAudioTime)
-  func signalTrackerWentBelowLevelThreshold(_ signalTracker: SignalTracker)
+  func signalTracker(
+    _ signalTracker: SignalTracker,
+    didReceiveBuffer buffer: AVAudioPCMBuffer,
+    atTime time: AVAudioTime
+  )
+  func signalTrackerWentBelowLevelThreshold(
+    _ signalTracker: SignalTracker,
+    didReceiveBuffer buffer: AVAudioPCMBuffer,
+    atTime time: AVAudioTime
+  )
 }
 
 public enum SignalTrackerMode {
