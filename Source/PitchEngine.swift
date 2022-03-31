@@ -1,6 +1,7 @@
 import UIKit
 import AVFoundation
 import Pitchy
+import AVFAudio
 
 public protocol PitchEngineDelegate: AnyObject {
   func pitchEngine(_ pitchEngine: PitchEngine, didReceivePitch pitch: Pitch)
