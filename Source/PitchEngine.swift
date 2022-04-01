@@ -187,7 +187,7 @@ extension PitchEngine: SignalTrackerDelegate {
           DispatchQueue.main.async { [weak self] in
             guard let `self` = self else { return }
             self.delegate?.pitchEngine(self, didReceivePitch: pitch)
-              self.advancedDelegate.pitchEngine(
+              self.advancedDelegate?.pitchEngine(
                 self,
                 didReceiveBuffer: buffer,
                 atTime: time,
@@ -199,11 +199,11 @@ extension PitchEngine: SignalTrackerDelegate {
           DispatchQueue.main.async { [weak self] in
             guard let `self` = self else { return }
             self.delegate?.pitchEngine(self, didReceiveError: error)
-            self.advancedDelegate.pitchEngine(
+            self.advancedDelegate?.pitchEngine(
               self,
               didReceiveBuffer: buffer,
               atTime: time,
-              didReceivePitch: pitch
+              didReceiveError: error
             )
           }
         }
