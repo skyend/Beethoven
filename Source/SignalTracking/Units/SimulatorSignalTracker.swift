@@ -69,9 +69,13 @@ public final class SimulatorSignalTracker: SignalTracker {
 
       i += 1
     }
-
+    
     DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(delay * i), execute: {
-        self.delegate?.signalTrackerWentBelowLevelThreshold(self, buffer: buffer, time: time)
+        self.delegate?.signalTrackerWentBelowLevelThreshold(
+          self,
+          didReceiveBuffer: AVAudioPCMBuffer(),
+          atTime: time
+        )
     })
   }
 

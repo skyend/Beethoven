@@ -209,7 +209,19 @@ extension PitchEngine: SignalTrackerDelegate {
         }
     }
   }
-
+//  public func signalTrackerWentBelowLevelThreshold(
+//    signalTracker: SignalTracker,
+//  ) {
+//    DispatchQueue.main.async {
+//        self.delegate?.pitchEngineWentBelowLevelThreshold(self)
+//        
+//        self.advancedDelegate?.pitchEngineWentBelowLevelThreshold(
+//          self,
+//          didReceiveBuffer: buffer,
+//          atTime: time
+//        )
+//    }
+//  }
   public func signalTrackerWentBelowLevelThreshold(
     _ signalTracker: SignalTracker,
     didReceiveBuffer buffer: AVAudioPCMBuffer,
