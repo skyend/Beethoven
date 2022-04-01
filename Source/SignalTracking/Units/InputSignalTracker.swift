@@ -72,7 +72,11 @@ final class InputSignalTracker: SignalTracker {
         }
       } else {
         DispatchQueue.main.async {
-            self.delegate?.signalTrackerWentBelowLevelThreshold(self, buffer: buffer, time:time)
+            self.delegate?.signalTrackerWentBelowLevelThreshold(
+              self,
+              didReceiveBuffer: buffer,
+              atTime:time
+            )
         }
       }
     }

@@ -10,9 +10,23 @@ public protocol PitchEngineDelegate: AnyObject {
 }
 
 public protocol PitchEngineAdvancedDelegate: AnyObject {
-    func pitchEngine(_ pitchEngine: PitchEngine, buffer: AVAudioPCMBuffer, time: AVAutioTime, didReceivePitch pitch: Pitch)
-  func pitchEngine(_ pitchEngine: PitchEngine, buffer: AVAudioPCMBuffer, time: AVAutioTime, didReceiveError error: Error)
-  func pitchEngineWentBelowLevelThreshold(_ pitchEngine: PitchEngine, buffer: AVAudioPCMBuffer, time: AVAutioTime)
+    func pitchEngine(
+      _ pitchEngine: PitchEngine,
+      didReceiveBuffer buffer: AVAudioPCMBuffer,
+      atTime time: AVAudioTime,
+      didReceivePitch pitch: Pitch
+    )
+  func pitchEngine(
+    _ pitchEngine: PitchEngine,
+    didReceiveBuffer buffer: AVAudioPCMBuffer,
+    atTime time: AVAudioTime,
+    didReceiveError error: Error
+  )
+  func pitchEngineWentBelowLevelThreshold(
+    _ pitchEngine: PitchEngine,
+    didReceiveBuffer buffer: AVAudioPCMBuffer,
+    atTime time: AVAudioTime
+  )
 }
 
 
@@ -173,14 +187,24 @@ extension PitchEngine: SignalTrackerDelegate {
           DispatchQueue.main.async { [weak self] in
             guard let `self` = self else { return }
             self.delegate?.pitchEngine(self, didReceivePitch: pitch)
-              self.advancedDelegate.pitchEngine(self, buffer: didReceiveBuffer, time: atTime, didReceivePitch: pitch)
+              self.advancedDelegate.pitchEngine(
+                self,
+                didReceiveBuffer: buffer,
+                atTime: time,
+                didReceivePitch: pitch
+              )
               
           }
         } catch {
           DispatchQueue.main.async { [weak self] in
             guard let `self` = self else { return }
             self.delegate?.pitchEngine(self, didReceiveError: error)
-          self.advancedDelegate.pitchEngine(self, buffer: didReceiveBuffer, time: atTime, didReceivePitch: pitch)
+            self.advancedDelegate.pitchEngine(
+              self,
+              didReceiveBuffer: buffer,
+              atTime: time,
+              didReceivePitch: pitch
+            )
           }
         }
     }
@@ -194,7 +218,11 @@ extension PitchEngine: SignalTrackerDelegate {
     DispatchQueue.main.async {
         self.delegate?.pitchEngineWentBelowLevelThreshold(self)
         
-        self.advancedDelegate?.pitchEngineWentBelowLevelThreshold(self, buffer: didReceiveBuffer, time:atTime)
+        self.advancedDelegate?.pitchEngineWentBelowLevelThreshold(
+          self,
+          didReceiveBuffer: buffer,
+          atTime: time
+        )
     }
   }
 }
